@@ -55,13 +55,9 @@ class Ui_MainWindow(object):
 		self.label.setGeometry(10,10,sizeX,sizeY)
 		self.label.mousePressEvent = self.clickImage
 		self.label.setText("")
-		#self.label.setPixmap(QtGui.QPixmap("images/2.jpg"))
 		self.label.setObjectName("label")
-		#self.horizontalLayout_3.addWidget(self.label)
 		self.horizontalLayout = QtWidgets.QHBoxLayout()
 		self.horizontalLayout.setObjectName("horizontalLayout")
-		#self.horizontalLayout_3.addLayout(self.horizontalLayout)
-		#self.gridLayout.addLayout(self.horizontalLayout_3, 0, 0, 1, 2)
 		self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
 		self.horizontalLayout_2.setObjectName("horizontalLayout_2")
   
@@ -101,9 +97,6 @@ class Ui_MainWindow(object):
 		self.image = cv2.imread(image_paths[index])
 		self.setPhoto(self.image)
   
-		# Added code here
-		self.filename = None # Will hold the image address location
-		self.tmp = None # Will hold the temporary image for display
 
     
 	def clickImage(self , event):
@@ -144,7 +137,6 @@ class Ui_MainWindow(object):
 			self.setPhotoManipulation(False)
 	
 	def setPhoto(self,image):
-		self.tmp = image
 		image = imutils.resize(image,width=sizeX)
 		frame = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 		image = QImage(frame, frame.shape[1],frame.shape[0],frame.strides[0],QImage.Format_RGB888)
@@ -210,7 +202,7 @@ class Ui_MainWindow(object):
 	
 	def retranslateUi(self, MainWindow):
 		_translate = QtCore.QCoreApplication.translate
-		#MainWindow.setWindowTitle(_translate("MainWindow", "Tracker"))
+		MainWindow.setWindowTitle(_translate("MainWindow", "Tracker"))
 		#self.setWindowIcon(QIcon('1.png'))
 		self.pushButton.setText(_translate("MainWindow", "Back"))
 		self.pushButton_2.setText(_translate("MainWindow", "Next"))
