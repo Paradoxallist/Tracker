@@ -10,7 +10,7 @@ import pymysql
 import sys
 import os
 
-image_path = 'C:/Users/User/Desktop/ImagesBoat/'
+image_path = 'C:/Users/User/Desktop/Boote_310722/'
 index = 0
 ext = '.JPG'
 
@@ -22,8 +22,8 @@ bboxes = []
 colors = []
 boatType = []
 
-sizeX = 840
-sizeY = 560
+sizeX = 1200
+sizeY = 800
 indentX = 35
 indentY = 23
 maxX = 1192 - indentX
@@ -37,7 +37,7 @@ class Ui_MainWindow(object):
         
 	def setupUi(self, MainWindow):
 		MainWindow.setObjectName("MainWindow")
-		MainWindow.resize(860, 640)
+		MainWindow.resize(1220, 900)
   
 		self.db = DataBase()
 		self.db.dropTable()
@@ -63,19 +63,19 @@ class Ui_MainWindow(object):
   
 		self.pushButton = QtWidgets.QPushButton(self.centralwidget)
 		self.pushButton.setObjectName("pushButton")
-		self.pushButton.setGeometry(10,580,70,22)
+		self.pushButton.setGeometry(10,sizeY + 20,70,22)
 		
 		self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
 		self.pushButton_2.setObjectName("pushButton_2")
-		self.pushButton_2.setGeometry(90,580,70,22)
+		self.pushButton_2.setGeometry(90,sizeY + 20,70,22)
   
 		self.pushButton_3 = QtWidgets.QPushButton(self.centralwidget)
 		self.pushButton_3.setObjectName("pushButton_3")
-		self.pushButton_3.setGeometry(170,580,70,22)
+		self.pushButton_3.setGeometry(170,sizeY + 20,70,22)
   
 		self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
 		self.pushButton_4.setObjectName("pushButton_4")
-		self.pushButton_4.setGeometry(250,580,70,22)
+		self.pushButton_4.setGeometry(250,sizeY + 20,70,22)
   
 		self.gridLayout.addLayout(self.horizontalLayout_2, 1, 0, 1, 1)
 		spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
@@ -100,8 +100,8 @@ class Ui_MainWindow(object):
 
     
 	def clickImage(self , event):
-		x = event.pos().x() * 1192/840
-		y = event.pos().y() * 795/560
+		x = event.pos().x() * 1192/sizeX
+		y = event.pos().y() * 795/sizeY
 		if event.button() == QtCore.Qt.LeftButton:
 			frame = self.resizeImage()	
 			dialog = DialogChooseTypeBoat()
