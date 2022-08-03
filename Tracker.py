@@ -22,86 +22,127 @@ bboxes = []
 colors = []
 boatType = []
 
-sizeX = 1200
-sizeY = 800
+WidthImage = 1200
+HeightImage = 800
 indentX = 35
 indentY = 23
 maxX = 1192 - indentX
 maxY = 795 - indentY
 
-isChooseBoat = False
+scale_percent = 15
 
-class Ui_MainWindow(object):
+isChooseBoat = False
+isNoImg = False
+
+DBhost = "localhost"
+DBuser = "root"
+DBdatabase = "boats"
+DBpasswd = "Password1234567890"
+
+class MainWindow(QMainWindow):
 
 	multiTracker = cv2.MultiTracker_create()
-        
-	def setupUi(self, MainWindow):
-		MainWindow.setObjectName("MainWindow")
-		MainWindow.resize(1220, 900)
-  
-		self.db = DataBase()
-		self.db.dropTable()
-		self.db.creatTable()
+    
+	def __init__(self):
+		super(MainWindow,self).__init__()
 
-		self.centralwidget = QtWidgets.QWidget(MainWindow)
-		self.centralwidget.setObjectName("centralwidget")
-		self.gridLayout_2 = QtWidgets.QGridLayout(self.centralwidget)
-		self.gridLayout_2.setObjectName("gridLayout_2")
-		self.gridLayout = QtWidgets.QGridLayout()
-		self.gridLayout.setObjectName("gridLayout")
-		self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
-		self.horizontalLayout_3.setObjectName("horizontalLayout_3")
-		self.label = QtWidgets.QLabel(self.centralwidget)
-		self.label.setGeometry(10,10,sizeX,sizeY)
+        #self.setWindowIcon(QIcon('1.png'))
+		self.setWindowTitle("Tracker")
+		self.setGeometry(350,100,1220,900)
+        
+		self.setupUi()
+    
+	def setupUi(self):
+  
+		self.creatDatabase()
+		self.dropTable()
+		self.creatTable()
+  
+		self.label = QLabel(self)
+		self.label.setGeometry(10,20,WidthImage,HeightImage)
 		self.label.mousePressEvent = self.clickImage
 		self.label.setText("")
+		#self.label.setPixmap(QtGui.QPixmap("images/2.jpg"))
 		self.label.setObjectName("label")
-		self.horizontalLayout = QtWidgets.QHBoxLayout()
-		self.horizontalLayout.setObjectName("horizontalLayout")
-		self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
-		self.horizontalLayout_2.setObjectName("horizontalLayout_2")
   
-		self.pushButton = QtWidgets.QPushButton(self.centralwidget)
+		self.pushButton = QtWidgets.QPushButton(self)
 		self.pushButton.setObjectName("pushButton")
-		self.pushButton.setGeometry(10,sizeY + 20,70,22)
+		self.pushButton.setGeometry(10,HeightImage + 30,70,22)
 		
-		self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
+		self.pushButton_2 = QtWidgets.QPushButton(self)
 		self.pushButton_2.setObjectName("pushButton_2")
-		self.pushButton_2.setGeometry(90,sizeY + 20,70,22)
+		self.pushButton_2.setGeometry(90,HeightImage + 30,70,22)
   
-		self.pushButton_3 = QtWidgets.QPushButton(self.centralwidget)
+		self.pushButton_3 = QtWidgets.QPushButton(self)
 		self.pushButton_3.setObjectName("pushButton_3")
-		self.pushButton_3.setGeometry(170,sizeY + 20,70,22)
+		self.pushButton_3.setGeometry(170,HeightImage + 30,70,22)
   
-		self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
+		self.pushButton_4 = QtWidgets.QPushButton(self)
 		self.pushButton_4.setObjectName("pushButton_4")
-		self.pushButton_4.setGeometry(250,sizeY + 20,70,22)
-  
-		self.gridLayout.addLayout(self.horizontalLayout_2, 1, 0, 1, 1)
-		spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-		self.gridLayout.addItem(spacerItem, 1, 1, 1, 1)
-		self.gridLayout_2.addLayout(self.gridLayout, 0, 0, 1, 1)
-		MainWindow.setCentralWidget(self.centralwidget)
-		self.statusbar = QtWidgets.QStatusBar(MainWindow)
-		self.statusbar.setObjectName("statusbar")
-		MainWindow.setStatusBar(self.statusbar)
+		self.pushButton_4.setGeometry(250,HeightImage + 30,70,22)
 
-		self.retranslateUi(MainWindow)
+		self.pushButton.setText("Back")
+		self.pushButton_2.setText("Next")
+		self.pushButton_3.setText("AddTracker")
+		self.pushButton_4.setText("EditTracker")
+  
 		self.pushButton.clicked.connect(self.earlyImage)
 		self.pushButton_2.clicked.connect(self.nextImage)
 		self.pushButton_3.clicked.connect(self.addTracker)
 		self.pushButton_4.clicked.connect(self.editTracker)
   		
-		QtCore.QMetaObject.connectSlotsByName(MainWindow)
-		
-		self.image = cv2.imread(image_paths[index])
-		self.setPhoto(self.image)
+		if(len(image_paths) > 0):
+			image = cv2.imread(image_paths[index])
+			self.setPhoto(image)
+		else:
+			image = cv2.imread("NoImg.JPG")
+			image_paths.append("NoImg.JPG")
+			global isNoImg
+			isNoImg = True
+			self.setPhoto(image)
+		self.createMenuBar()
+
+
+	def createMenuBar(self):
+		self.menuBar = QMenuBar(self)
+		self.setMenuBar(self.menuBar)
+        
+		fileMenu = QMenu("&File",self)
+		self.menuBar.addMenu(fileMenu)
+        
+		fileMenu.addAction('Specify the path', self.action_clicked_SpecifyPath)
+		#fileMenu.addAction('Database setup', self.action_clicked_DB)
   
+	@QtCore.pyqtSlot()
+	def action_clicked_SpecifyPath(self):
+		fname = QFileDialog.getExistingDirectory(self)
+		if fname != "" :
+			image_path = fname + "/"
+			global image_paths
+			image_paths = [os.path.join(image_path, img) for img in os.listdir(image_path) if ext in img]
+			image_paths = sorted(image_paths)
+			global index
+			index = 0
+			global isNoImg
+			isNoImg = False
+			self.setPhotoManipulation()
+	
+	@QtCore.pyqtSlot()
+	def action_clicked_DB(self):
+		dialog = DialogChooseDB()
+		dialog.exec_()
+		self.creatDatabase()
+		self.creatTable()
+	
 
     
 	def clickImage(self , event):
-		x = event.pos().x() * 1192/sizeX
-		y = event.pos().y() * 795/sizeY
+		
+		if isNoImg:
+			return
+
+		x = event.pos().x() * 1192/WidthImage
+		y = event.pos().y() * 795/HeightImage
 		if event.button() == QtCore.Qt.LeftButton:
 			frame = self.resizeImage()	
 			dialog = DialogChooseTypeBoat()
@@ -129,21 +170,11 @@ class Ui_MainWindow(object):
 						break
 			
 
-	
-	def earlyImage(self):
-		global index
-		if index > 0:
-			index-=1
-			self.setPhotoManipulation(False)
-	
-	def setPhoto(self,image):
-		image = imutils.resize(image,width=sizeX)
-		frame = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-		image = QImage(frame, frame.shape[1],frame.shape[0],frame.strides[0],QImage.Format_RGB888)
-		self.label.setPixmap(QtGui.QPixmap.fromImage(image))
-
 		
 	def addTracker(self):
+
+		if isNoImg:
+			return
 
 		frame = self.resizeImage()	
 
@@ -157,10 +188,37 @@ class Ui_MainWindow(object):
 		cv2.destroyAllWindows()
 
 		self.setPhotoManipulation(False)
+
+	def editTracker(self):
+		dialog = ClssDialog()
+		dialog.exec_()
+		self.setPhotoManipulation(False)
+    
+	def earlyImage(self):
+		global index
+		if index > 0:
+			index-=1
+			self.setPhotoManipulation(False)
+    
+	def nextImage(self):
+		global index
+		if index < len(image_paths)-1:
+			index+=1
+			self.setPhotoManipulation(True)
+    
+##### image
+    
+	def setPhoto(self,image):
+		image = imutils.resize(image,width=WidthImage)
+		frame = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+		image = QImage(frame, frame.shape[1],frame.shape[0],frame.strides[0],QImage.Format_RGB888)
+		self.label.setPixmap(QtGui.QPixmap.fromImage(image))
+
 	
 	def resizeImage(self):
 		img = cv2.imread(image_paths[index])
-		scale_percent = 15
+
+		global scale_percent
 
 		width = int(img.shape[1] * scale_percent / 100)
 		height = int(img.shape[0] * scale_percent / 100)
@@ -168,20 +226,12 @@ class Ui_MainWindow(object):
 
 		frame = cv2.resize(img, dsize)
 		return frame
+ 
+	def setPhotoManipulation(self,isRecord=False):
+		
+		if isNoImg:
+			return
 
-	def editTracker(self):
-		dialog = ClssDialog()
-		dialog.exec_()
-		self.setPhotoManipulation(False)
-        
-	def nextImage(self):
-		global index
-		if index < len(image_paths):
-			index+=1
-			self.setPhotoManipulation(True)
-	
-	def setPhotoManipulation(self,isRecord):
-     
 		frame = self.resizeImage()	
 		ret, boxes = self.multiTracker.update(frame)
 
@@ -195,19 +245,39 @@ class Ui_MainWindow(object):
 				if isRecord:
 					x = newbox[0] + newbox[2]/2
 					y = newbox[1] + newbox[3]/2
-					self.db.addRecord(index,boatType[i],x,y)
+					self.addRecord(index,boatType[i],x,y)
    
 		self.setPhoto(frame)
 
+
+##### Database
+
+	def creatDatabase(self):
+		self.mydb = pymysql.connect(
+		host = DBhost,
+		user = DBuser,
+		database = DBdatabase,
+		passwd = DBpasswd)
+  
+		self.mycursor = self.mydb.cursor()
+        
+	def creatTable(self):
+		query = "CREATE TABLE IF NOT EXISTS BoatPositions(ID int  PRIMARY KEY AUTO_INCREMENT, NumImg int, Type VARCHAR(255), X DOUBLE, Y DOUBLE);"
+		self.mycursor.execute(query)
+		self.mydb.commit()
+        
+	def dropTable(self):
+		drop_query = "DROP TABLE BoatPositions;"
+		self.mycursor.execute(drop_query)
+		self.mydb.commit()
 	
-	def retranslateUi(self, MainWindow):
-		_translate = QtCore.QCoreApplication.translate
-		MainWindow.setWindowTitle(_translate("MainWindow", "Tracker"))
-		#self.setWindowIcon(QIcon('1.png'))
-		self.pushButton.setText(_translate("MainWindow", "Back"))
-		self.pushButton_2.setText(_translate("MainWindow", "Next"))
-		self.pushButton_3.setText(_translate("MainWindow", "AddTracker"))
-		self.pushButton_4.setText(_translate("MainWindow", "EditTracker"))
+	def addRecord(self,num,Type,x,y):
+		query = f"INSERT INTO BoatPositions(NumImg, Type, X, Y) VALUES({int(num)}, '{str(Type)}', {double(x)}, {double(y)});"
+		self.mycursor.execute(query)
+		self.mydb.commit()
+
+
+##### Window (Edit tracker)
 
 class ClssDialog(QDialog):
 
@@ -232,7 +302,6 @@ class ClssDialog(QDialog):
         msgBox.setText("Delete Tracker?")
         msgBox.setWindowTitle("Delete")
         msgBox.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-        #msgBox.buttonClicked.connect(self.msgButtonClick)
 
         returnValue = msgBox.exec()
         if returnValue == QMessageBox.Ok:
@@ -249,9 +318,8 @@ class ClssDialog(QDialog):
         self.slm.setStringList(self.listTr)
         self.listView.setModel(self.slm)
         self.listView.clicked.connect(self.showDialog)
-   
-    def msgButtonClick(i):
-        print("Button clicked is:",i.text())
+
+##### Window (Choose Type Boat)
 
 class DialogChooseTypeBoat(QDialog):
 
@@ -282,43 +350,59 @@ class DialogChooseTypeBoat(QDialog):
 		self.listView.setModel(self.slm)
 		self.listView.clicked.connect(self.showDialog)
 
+##### Window (Database setup)
 
-class DataBase():
-	def __init__(self):
-		super(DataBase,self).__init__()
-		self.mydb = pymysql.connect(
-		host="localhost",
-		user="root",
-		database="boats",
-		passwd="Password1234567890")
-		self.mycursor = self.mydb.cursor()
+class DialogChooseDB(QDialog):
+
+	def __init__(self, parent=None):
+		super(DialogChooseDB, self).__init__(parent)
+        
+		self.setWindowTitle('Database setup')
+
+		flo = QFormLayout()
+		self.LineEditHost = QLineEdit()
+		self.LineEditUser = QLineEdit()
+		self.LineEditDataBase = QLineEdit()
+		self.LineEditPasswd = QLineEdit()
+        
+		flo.addRow("Host",self.LineEditHost)
+		flo.addRow("User",self.LineEditUser)
+		flo.addRow("DataBase",self.LineEditDataBase)
+		flo.addRow("Password",self.LineEditPasswd)
+  
+		button_1 = QPushButton("Ok")
+		#button_1.setObjectName("Ok")
+		button_1.clicked.connect(self.pressOk)
+		button_2 = QPushButton("Cancel")
+		#button_2.setObjectName("Cancel")
+		button_2.clicked.connect(self.reject)
+		flo.addRow(button_1,button_2)
+
+		self.LineEditPasswd.setEchoMode(QLineEdit.Password)
+
+		self.setLayout(flo)
 
         
-	def creatTable(self):
-		query = "CREATE TABLE IF NOT EXISTS BoatPositions(ID int  PRIMARY KEY AUTO_INCREMENT, NumImg int, Type VARCHAR(255), X DOUBLE, Y DOUBLE);"
-		self.mycursor.execute(query)
-		self.mydb.commit()
-        
-	def dropTable(self):
-		drop_query = "DROP TABLE BoatPositions;"
-		self.mycursor.execute(drop_query)
-		self.mydb.commit()
-	
-	def addRecord(self,num,Type,x,y):
-		query = f"INSERT INTO BoatPositions(NumImg, Type, X, Y) VALUES({int(num)}, '{str(Type)}', {double(x)}, {double(y)});"
-		self.mycursor.execute(query)
-		self.mydb.commit()
-        
+	def pressOk(self):
+		global DBhost,DBuser,DBdatabase,DBpasswd
+		DBhost = self.LineEditHost.text()
+		DBuser = self.LineEditUser.text()
+		DBdatabase = self.LineEditDataBase.text()
+		DBpasswd = self.LineEditPasswd.text()
+		self.reject()
+
+#### init
 
 if __name__ == "__main__":
     
-	image_paths = [os.path.join(image_path, img) for img in os.listdir(image_path) if ext in img]
-	image_paths = sorted(image_paths)
- 
+	if(os.path.exists(image_path)):
+		image_paths = [os.path.join(image_path, img) for img in os.listdir(image_path) if ext in img]
+		image_paths = sorted(image_paths)
+	else:
+		image_paths.append("NoImg.JPG")
+		isNoImg = True
 	app = QtWidgets.QApplication(sys.argv)
-	MainWindow = QtWidgets.QMainWindow()
-	ui = Ui_MainWindow()
-	ui.setupUi(MainWindow)
-	MainWindow.show()
+	Window = MainWindow()
+	Window.show()
 	sys.exit(app.exec_())
  
