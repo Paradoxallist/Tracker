@@ -253,13 +253,21 @@ class MainWindow(QMainWindow):
 ##### Database
 
 	def creatDatabase(self):
-		self.mydb = pymysql.connect(
-		host = DBhost,
-		user = DBuser,
-		database = DBdatabase,
-		passwd = DBpasswd)
+		try:
+			self.mydb = pymysql.connect(
+			host = DBhost,
+			user = DBuser,
+			database = DBdatabase,
+			passwd = DBpasswd)
   
-		self.mycursor = self.mydb.cursor()
+			self.mycursor = self.mydb.cursor()
+		except pymysql.connect.Error as err:
+			print("Something went wrong: {}".format(err))
+			msgBox = QMessageBox()
+			msgBox.setIcon(QMessageBox.Information)
+			msgBox.setText("Something went wrong: {}".format(err))
+			msgBox.setWindowTitle("Error")
+			msgBox.exec()
         
 	def creatTable(self):
 		query = "CREATE TABLE IF NOT EXISTS BoatPositions(ID int  PRIMARY KEY AUTO_INCREMENT, NumImg int, Type VARCHAR(255), X DOUBLE, Y DOUBLE);"
