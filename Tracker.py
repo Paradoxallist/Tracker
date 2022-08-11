@@ -11,7 +11,7 @@ import sys
 import os
 
 image_path = 'C:/Users/User/Desktop/Boote_310722/'
-index = 0
+index = 100
 ext = '.JPG'
 
 listTypeBoat = ["Linienschiff ","Motorboot ","Elektroboot ","Segelboot","Unbekannt"]
@@ -91,14 +91,15 @@ class MainWindow(QMainWindow):
 		self.pushButton_3.clicked.connect(self.addTracker)
 		self.pushButton_4.clicked.connect(self.editTracker)
   		
-		if(len(image_paths) > 0):
+
+		global isNoImg
+
+		if(isNoImg == False):
 			image = cv2.imread(image_paths[index])
 			self.setPhoto(image)
 		else:
 			image = cv2.imread("NoImg.JPG")
 			image_paths.append("NoImg.JPG")
-			global isNoImg
-			isNoImg = True
 			self.setPhoto(image)
 		self.createMenuBar()
 
@@ -252,6 +253,8 @@ class MainWindow(QMainWindow):
 
 ##### Database
 
+	isCreatedDB = False
+
 	def creatDatabase(self):
 		try:
 			self.mydb = pymysql.connect(
@@ -261,6 +264,7 @@ class MainWindow(QMainWindow):
 			passwd = DBpasswd)
   
 			self.mycursor = self.mydb.cursor()
+			self.isCreatedDB = True
 		except pymysql.connect.Error as err:
 			print("Something went wrong: {}".format(err))
 			msgBox = QMessageBox()
@@ -270,19 +274,49 @@ class MainWindow(QMainWindow):
 			msgBox.exec()
         
 	def creatTable(self):
-		query = "CREATE TABLE IF NOT EXISTS BoatPositions(ID int  PRIMARY KEY AUTO_INCREMENT, NumImg int, Type VARCHAR(255), X DOUBLE, Y DOUBLE);"
-		self.mycursor.execute(query)
-		self.mydb.commit()
+		if self.isCreatedDB == False:
+			return
+		try:
+			query = "CREATE TABLE IF NOT EXISTS BoatPositions(ID int  PRIMARY KEY AUTO_INCREMENT, NumImg int, Type VARCHAR(255), X DOUBLE, Y DOUBLE);"
+			self.mycursor.execute(query)
+			self.mydb.commit()
+		except pymysql.Error as err:
+			print("Something went wrong: {}".format(err))
+			msgBox = QMessageBox()
+			msgBox.setIcon(QMessageBox.Information)
+			msgBox.setText("Something went wrong: {}".format(err))
+			msgBox.setWindowTitle("Error")
+			msgBox.exec()
         
 	def dropTable(self):
-		drop_query = "DROP TABLE BoatPositions;"
-		self.mycursor.execute(drop_query)
-		self.mydb.commit()
+		if self.isCreatedDB == False:
+			return
+		try:
+			drop_query = "DROP TABLE BoatPositions;"
+			self.mycursor.execute(drop_query)
+			self.mydb.commit()
+		except pymysql.Error as err:
+			print("Something went wrong: {}".format(err))
+			msgBox = QMessageBox()
+			msgBox.setIcon(QMessageBox.Information)
+			msgBox.setText("Something went wrong: {}".format(err))
+			msgBox.setWindowTitle("Error")
+			msgBox.exec()
 	
 	def addRecord(self,num,Type,x,y):
-		query = f"INSERT INTO BoatPositions(NumImg, Type, X, Y) VALUES({int(num)}, '{str(Type)}', {double(x)}, {double(y)});"
-		self.mycursor.execute(query)
-		self.mydb.commit()
+		if self.isCreatedDB == False:
+			return
+		try:
+			query = f"INSERT INTO BoatPositions(NumImg, Type, X, Y) VALUES({int(num)}, '{str(Type)}', {double(x)}, {double(y)});"
+			self.mycursor.execute(query)
+			self.mydb.commit()
+		except pymysql.Error as err:
+			print("Something went wrong: {}".format(err))
+			msgBox = QMessageBox()
+			msgBox.setIcon(QMessageBox.Information)
+			msgBox.setText("Something went wrong: {}".format(err))
+			msgBox.setWindowTitle("Error")
+			msgBox.exec()
 
 
 ##### Window (Edit tracker)
@@ -407,7 +441,6 @@ if __name__ == "__main__":
 		image_paths = [os.path.join(image_path, img) for img in os.listdir(image_path) if ext in img]
 		image_paths = sorted(image_paths)
 	else:
-		image_paths.append("NoImg.JPG")
 		isNoImg = True
 	app = QtWidgets.QApplication(sys.argv)
 	Window = MainWindow()
